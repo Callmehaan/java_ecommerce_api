@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: ecommerce
+  datasource:
+    url: jdbc:sqlite:database.db
+    driver-class-name: org.sqlite.JDBC
+    username:
+    password:
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+app:
+  storage:
+    base-url: http://localhost:8080/uploads
+    location: uploads
+  cors:
+    allowed-origins: "*"
+    allowed-methods: "*"
+    allowed-headers: "*"
+    exposed-headers: "*"
