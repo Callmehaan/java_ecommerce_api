@@ -1,5 +1,7 @@
 package callmehaan.dev.ecommerce.product;
 
+import callmehaan.dev.ecommerce.category.CategoryService;
+import callmehaan.dev.ecommerce.category.entity.Category;
 import callmehaan.dev.ecommerce.common.dto.PageResponse;
 import callmehaan.dev.ecommerce.common.exception.ResourceNotFoundException;
 import callmehaan.dev.ecommerce.product.dto.CreateProductRequest;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -26,10 +29,12 @@ public class ProductService {
     private static final Logger log = LoggerFactory.getLogger(ProductService.class);
     private final StorageService storageService;
     private final ProductRepository productRepository;
+    private final CategoryService categoryService;
 
-    public ProductService(StorageService storageService, ProductRepository productRepository) {
+    public ProductService(StorageService storageService, ProductRepository productRepository, CategoryService categoryService) {
         this.storageService = storageService;
         this.productRepository = productRepository;
+        this.categoryService = categoryService;
     }
 
     @Transactional
@@ -91,6 +96,19 @@ public class ProductService {
     public void deleteProduct(UUID id) {
         if (productRepository.existsById(id)) productRepository.deleteById(id);
         log.info("Product not found with id {}", id);
+    }
+
+    public void assignCategoryToProduct(UUID productId, UUID categoryId) {
+        Product product = this.productRepository.findById(productId)
+                .orElseThrow(() -> {
+                    log.info("Product not found with id {}", productId);
+                    return new ResourceNotFoundException(String.format("Product not found with id: %s", productId));
+                });
+
+        Category category = this.categoryService.getCategory(categoryId);
+        product.addCategories(Set.of(category));
+
+        this.productRepository.save(product);
     }
 
     //? =========== Helper Methods ===========

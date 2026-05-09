@@ -79,4 +79,11 @@ public class Product {
         images.add(image);
         image.setProduct(this);
     }
+
+    public void addCategories(Set<Category> categories) {
+        if(categories == null) {
+            return;
+        }
+        this.categories.addAll(categories);
+    }
 }

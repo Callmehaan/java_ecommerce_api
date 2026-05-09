@@ -82,4 +82,14 @@ public class ProductController extends BaseController {
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
+
+    @PutMapping("{productId}/assign-category/{categoryId}")
+    public ResponseEntity<ApiResponse<Void>> assignCategoryToProduct(
+            @PathVariable UUID productId,
+            @PathVariable UUID categoryId
+    ) {
+        this.productService.assignCategoryToProduct(productId, categoryId);
+
+        return ok(HttpStatus.OK.value(), "Category assigned successfully", null);
+    }
 }

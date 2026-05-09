@@ -3,8 +3,6 @@ package callmehaan.dev.ecommerce.category;
 import callmehaan.dev.ecommerce.category.dto.CreateCategoryRequest;
 import callmehaan.dev.ecommerce.category.entity.Category;
 import callmehaan.dev.ecommerce.common.exception.ResourceNotFoundException;
-import callmehaan.dev.ecommerce.product.ProductService;
-import callmehaan.dev.ecommerce.product.entity.Product;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
