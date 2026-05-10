@@ -1,5 +1,6 @@
 package callmehaan.dev.ecommerce.category.entity;
 
+import callmehaan.dev.ecommerce.category.constant.CategoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -42,7 +43,8 @@ public class Category {
     private Integer level = 0; //? 0: parent, 1: child, etc
 
     @Column
-    private boolean active = true;
+    @Enumerated(EnumType.STRING)
+    private CategoryStatus active = CategoryStatus.ACTIVE;
 
     @Column
     private Integer sortOrder = 0;

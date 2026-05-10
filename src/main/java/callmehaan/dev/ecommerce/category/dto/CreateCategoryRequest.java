@@ -1,6 +1,7 @@
 package callmehaan.dev.ecommerce.category.dto;
 
-import java.util.List;
+import callmehaan.dev.ecommerce.category.constant.CategoryStatus;
+
 import java.util.UUID;
 
 public record CreateCategoryRequest(
@@ -8,7 +9,7 @@ public record CreateCategoryRequest(
         String description,
         String slug,
         UUID parentId,
-        boolean active,
+        CategoryStatus active,
         Integer sortOrder
 ) {
 }
