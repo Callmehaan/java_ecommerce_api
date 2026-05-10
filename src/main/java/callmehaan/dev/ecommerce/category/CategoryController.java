@@ -2,6 +2,7 @@ package callmehaan.dev.ecommerce.category;
 
 import callmehaan.dev.ecommerce.category.dto.CategoryDto;
 import callmehaan.dev.ecommerce.category.dto.CreateCategoryRequest;
+import callmehaan.dev.ecommerce.category.dto.UpdateCategoryRequest;
 import callmehaan.dev.ecommerce.category.entity.Category;
 import callmehaan.dev.ecommerce.common.BaseController;
 import callmehaan.dev.ecommerce.common.dto.ApiResponse;
@@ -44,7 +45,16 @@ public class CategoryController extends BaseController {
         List<CategoryDto> categoryPath = this.categoryService.getCategoryPath(id)
                 .stream().map(CategoryDto::fromEntityShallow).toList();
 
-
         return ok(HttpStatus.OK.value(), "", categoryPath);
     }
+
+    @PutMapping("{id}")
+    public ResponseEntity<ApiResponse<CategoryDto>> updateCategory(
+            @PathVariable UUID id, @RequestBody UpdateCategoryRequest updateCategoryRequest) {
+        Category category = this.categoryService.updateCategory(id, updateCategoryRequest);
+
+        return ok(HttpStatus.OK.value(), "Category updated successfully", CategoryDto.fromEntity(category));
+    }
+
+
 }

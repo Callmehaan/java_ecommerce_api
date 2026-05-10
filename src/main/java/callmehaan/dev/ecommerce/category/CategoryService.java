@@ -1,6 +1,7 @@
 package callmehaan.dev.ecommerce.category;
 
 import callmehaan.dev.ecommerce.category.dto.CreateCategoryRequest;
+import callmehaan.dev.ecommerce.category.dto.UpdateCategoryRequest;
 import callmehaan.dev.ecommerce.category.entity.Category;
 import callmehaan.dev.ecommerce.common.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,29 @@ public class CategoryService {
     public Category getCategory(UUID categoryId) {
         return this.categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+    }
+
+    public Category updateCategory(UUID categoryId, UpdateCategoryRequest updateCategoryRequest) {
+        Category category = this.categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Category with id %s not found", categoryId))
+                );
+
+        if(updateCategoryRequest.activate() != null) category.setActive(updateCategoryRequest.activate());
+        if(updateCategoryRequest.name() != null) category.setName(updateCategoryRequest.name());
+        if(updateCategoryRequest.description() != null) category.setDescription(updateCategoryRequest.description());
+        if(updateCategoryRequest.slug() != null) category.setSlug(updateCategoryRequest.slug());
+        if(updateCategoryRequest.sortOrder() != null) category.setSortOrder(updateCategoryRequest.sortOrder());
+        if(updateCategoryRequest.level() != null) category.setLevel(updateCategoryRequest.level());
+        if(updateCategoryRequest.parentId() != null) {
+            Category parentCategory = this.categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            String.format("Parent category with id %s not found", categoryId))
+                    );
+            category.setParent(parentCategory);
+        }
+
+        return this.categoryRepository.save(category);
     }
 
     //? =========== Helper Methods ===========
