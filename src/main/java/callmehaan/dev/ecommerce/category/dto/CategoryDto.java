@@ -1,5 +1,6 @@
 package callmehaan.dev.ecommerce.category.dto;
 
+import callmehaan.dev.ecommerce.category.constant.CategoryStatus;
 import callmehaan.dev.ecommerce.category.entity.Category;
 
 import java.util.Collections;
@@ -13,7 +14,7 @@ public record CategoryDto(
         String description,
         String slug,
         Integer level,
-        boolean active,
+        CategoryStatus active,
         Integer sortOrder,
         List<CategoryDto> subCategories
 ) {
@@ -34,7 +35,7 @@ public record CategoryDto(
                 category.getDescription(),
                 category.getSlug(),
                 category.getLevel(),
-                category.isActive(),
+                category.getActive(),
                 category.getSortOrder(),
                 convertSubCategories(category.getSubCategories())
         );
@@ -50,7 +51,7 @@ public record CategoryDto(
                 category.getDescription(),
                 category.getSlug(),
                 category.getLevel(),
-                category.isActive(),
+                category.getActive(),
                 category.getSortOrder(),
                 List.of() // Empty list instead of children
         );
