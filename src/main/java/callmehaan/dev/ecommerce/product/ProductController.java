@@ -35,9 +35,9 @@ public class ProductController extends BaseController {
             @RequestPart("data") CreateProductRequest createProductRequest,
             @RequestPart(value = "images", required = false)List<MultipartFile> images
             ) throws IOException {
-        ProductDto productDto = productService.createProduct(createProductRequest, images);
+        Product product = productService.createProduct(createProductRequest, images);
 
-        return ok(HttpStatus.CREATED.value(), "Product created successfully", productDto);
+        return ok(HttpStatus.CREATED.value(), "Product created successfully", ProductDto.from(product));
     }
 
     @GetMapping("{id}")

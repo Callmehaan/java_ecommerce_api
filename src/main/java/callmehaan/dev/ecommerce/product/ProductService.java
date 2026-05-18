@@ -37,7 +37,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto createProduct(CreateProductRequest productRequest, List<MultipartFile> images) throws IOException {
+    public Product createProduct(CreateProductRequest productRequest, List<MultipartFile> images) throws IOException {
         Product product = new Product();
         product.setTitle(productRequest.title());
         product.setDescription(productRequest.description());
@@ -50,7 +50,7 @@ public class ProductService {
             Product savedProduct = productRepository.save(product);
             log.info("Saved product with id {}", savedProduct.getId());
 
-            return ProductDto.from(savedProduct);
+            return savedProduct;
         } catch (Exception e) {
             deleteUploadedFiles(imageUrls);
             throw e;
