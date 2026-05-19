@@ -21,3 +21,6 @@ app:
     allowed-methods: "*"
     allowed-headers: "*"
     exposed-headers: "*"
+  redis:
+    host: localhost
+    port: 6379
