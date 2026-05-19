@@ -42,9 +42,9 @@ public class ProductController extends BaseController {
 
     @GetMapping("{id}")
     public ResponseEntity<ApiResponse<ProductDto>> getProduct(@PathVariable UUID id) {
-        Product product = productService.getProduct(id);
+        ProductDto product = productService.getProduct(id);
 
-        return ok(HttpStatus.OK.value(), "Product fetched successfully", ProductDto.from(product));
+        return ok(HttpStatus.OK.value(), "Product fetched successfully", product);
     }
 
     @GetMapping

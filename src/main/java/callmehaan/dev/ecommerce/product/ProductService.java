@@ -29,11 +29,13 @@ public class ProductService {
     private final StorageService storageService;
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
+    private final ProductCacheService productCacheService;
 
-    public ProductService(StorageService storageService, ProductRepository productRepository, CategoryService categoryService) {
+    public ProductService(StorageService storageService, ProductRepository productRepository, CategoryService categoryService, ProductCacheService productCacheService) {
         this.storageService = storageService;
         this.productRepository = productRepository;
         this.categoryService = categoryService;
+        this.productCacheService = productCacheService;
     }
 
     @Transactional
@@ -58,12 +60,28 @@ public class ProductService {
 
     }
 
-    public Product getProduct(UUID id) {
-        return productRepository.findById(id)
+    public ProductDto getProduct(UUID id) {
+        ProductDto cachedProduct = this.productCacheService.getProduct(id);
+        if(cachedProduct != null) {
+            System.out.println("Cached product found with id " + id);
+            return new ProductDto(
+                    cachedProduct.id(),
+                    cachedProduct.title(),
+                    cachedProduct.description(),
+                    cachedProduct.price(),
+                    cachedProduct.stock(),
+                    cachedProduct.imageUrls(),
+                    cachedProduct.categories()
+            );
+        }
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> {
                     log.info("Product not found with id {}", id);
                     return new ResourceNotFoundException("Product not found with id: " + id);
                 });
+        ProductDto productDto = ProductDto.from(product);
+        this.productCacheService.putProduct(productDto);
+        return productDto;
     }
 
     public PageResponse<ProductDto> getAllProducts(Pageable pageable) {
