@@ -1,0 +1,17 @@
+services:
+  redis:
+    image: redis:8.6.3-alpine
+    container_name: redis_database
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "PING"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
