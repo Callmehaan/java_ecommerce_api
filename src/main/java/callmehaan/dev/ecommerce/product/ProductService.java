@@ -8,6 +8,7 @@ import callmehaan.dev.ecommerce.product.dto.CreateProductRequest;
 import callmehaan.dev.ecommerce.product.dto.ProductDto;
 import callmehaan.dev.ecommerce.product.dto.UpdateProductRequest;
 import callmehaan.dev.ecommerce.product.entity.Product;
+import callmehaan.dev.ecommerce.storage.ImageStorageService;
 import callmehaan.dev.ecommerce.storage.entity.Image;
 import callmehaan.dev.ecommerce.storage.StorageService;
 import org.slf4j.Logger;
@@ -26,12 +27,13 @@ import java.util.UUID;
 @Service
 public class ProductService {
     private static final Logger log = LoggerFactory.getLogger(ProductService.class);
-    private final StorageService storageService;
+    private final ImageStorageService storageService;
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
     private final ProductCacheService productCacheService;
 
-    public ProductService(StorageService storageService, ProductRepository productRepository, CategoryService categoryService, ProductCacheService productCacheService) {
+
+    public ProductService(ImageStorageService storageService, ProductRepository productRepository, CategoryService categoryService, ProductCacheService productCacheService) {
         this.storageService = storageService;
         this.productRepository = productRepository;
         this.categoryService = categoryService;
@@ -39,40 +41,33 @@ public class ProductService {
     }
 
     @Transactional
-    public Product createProduct(CreateProductRequest productRequest, List<MultipartFile> images) throws IOException {
+    public ProductDto createProduct(CreateProductRequest productRequest, List<MultipartFile> images) throws IOException {
         Product product = new Product();
         product.setTitle(productRequest.title());
         product.setDescription(productRequest.description());
         product.setPrice(productRequest.price());
         product.setStock(productRequest.stock());
 
-        List<String> imageUrls = storeImages(product, images);
+        List<String> imageUrls = storageService.storeImages(product, images);
 
         try {
             Product savedProduct = productRepository.save(product);
-            log.info("Saved product with id {}", savedProduct.getId());
+            ProductDto productDto = ProductDto.from(savedProduct);
+            productCacheService.cacheProduct(productDto);
 
-            return savedProduct;
+            return productDto;
         } catch (Exception e) {
-            deleteUploadedFiles(imageUrls);
+            storageService.deleteUploadedFiles(imageUrls);
             throw e;
         }
 
     }
 
+    @Transactional(readOnly = true)
     public ProductDto getProduct(UUID id) {
         ProductDto cachedProduct = this.productCacheService.getProduct(id);
         if(cachedProduct != null) {
-            System.out.println("Cached product found with id " + id);
-            return new ProductDto(
-                    cachedProduct.id(),
-                    cachedProduct.title(),
-                    cachedProduct.description(),
-                    cachedProduct.price(),
-                    cachedProduct.stock(),
-                    cachedProduct.imageUrls(),
-                    cachedProduct.categories()
-            );
+            return cachedProduct;
         }
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> {
@@ -80,7 +75,7 @@ public class ProductService {
                     return new ResourceNotFoundException("Product not found with id: " + id);
                 });
         ProductDto productDto = ProductDto.from(product);
-        this.productCacheService.putProduct(productDto);
+        this.productCacheService.cacheProduct(productDto);
         return productDto;
     }
 
@@ -92,7 +87,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Product updateProduct(UUID id, UpdateProductRequest updateProductRequest, List<MultipartFile> images)
+    public ProductDto updateProduct(UUID id, UpdateProductRequest updateProductRequest, List<MultipartFile> images)
             throws IOException {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> {
@@ -105,14 +100,28 @@ public class ProductService {
         product.setPrice(updateProductRequest.price());
         product.setStock(updateProductRequest.stock());
 
-        storeImages(product, images);
+        storageService.storeImages(product, images);
 
-        return productRepository.save(product);
+        Product updatedProduct = productRepository.save(product);
+        ProductDto productDto = ProductDto.from(updatedProduct);
+        this.productCacheService.cacheProduct(productDto);
+        log.info("Product updated successfully");
+
+        return productDto;
     }
 
     public void deleteProduct(UUID id) {
-        if (productRepository.existsById(id)) productRepository.deleteById(id);
-        log.info("Product not found with id {}", id);
+        if (!productRepository.existsById(id)) {
+            log.info("Product not found with id {}", id);
+            throw new ResourceNotFoundException(
+                    "Product not found with id: " + id
+            );
+        }
+
+        productRepository.deleteById(id);
+        productCacheService.deleteCachedProduct(id);
+
+        log.info("Product deleted successfully with id {}", id);
     }
 
     @Transactional
@@ -127,43 +136,6 @@ public class ProductService {
         product.addCategory(category);
 
         this.productRepository.save(product);
-    }
-
-    //? =========== Helper Methods ===========
-    private List<String> storeImages(Product product, List<MultipartFile> images) throws IOException {
-        List<String> imageUlrs = new ArrayList<>();
-
-        try {
-            if (images != null && !images.isEmpty()) {
-                for (int i = 0; i < images.size(); i++) {
-                    String imageUrl = storageService.save(images.get(i));
-
-                    Image image = new Image(
-                            imageUrl,
-                            i == 0,
-                            product
-                    );
-
-                    product.addImage(image);
-                    imageUlrs.add(imageUrl);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-        return imageUlrs;
-    }
-
-    private void deleteUploadedFiles(List<String> urls) {
-
-        for (String url : urls) {
-            try {
-                storageService.delete(url);
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            }
-        }
     }
 
 }

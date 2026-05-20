@@ -1,6 +1,7 @@
 package callmehaan.dev.ecommerce.storage;
 
 import callmehaan.dev.ecommerce.common.exception.ResourceNotFoundException;
+import callmehaan.dev.ecommerce.product.entity.Product;
 import callmehaan.dev.ecommerce.storage.entity.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service("localStorage")
-public class LocalStorageService implements StorageService {
+public class LocalStorageService implements ImageStorageService {
     private final Logger log = LoggerFactory.getLogger(LocalStorageService.class);
     private final StorageProperties storageProperties;
     private final ImageRepository imageRepository;
@@ -76,6 +79,42 @@ public class LocalStorageService implements StorageService {
         }
 
         return originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+    }
+
+    public List<String> storeImages(Product product, List<MultipartFile> images) throws IOException {
+        List<String> imageUlrs = new ArrayList<>();
+
+        try {
+            if (images != null && !images.isEmpty()) {
+                for (int i = 0; i < images.size(); i++) {
+                    String imageUrl = save(images.get(i));
+
+                    Image image = new Image(
+                            imageUrl,
+                            i == 0,
+                            product
+                    );
+
+                    product.addImage(image);
+                    imageUlrs.add(imageUrl);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to store images", e);
+            throw e;
+        }
+        return imageUlrs;
+    }
+
+    public void deleteUploadedFiles(List<String> urls) {
+
+        for (String url : urls) {
+            try {
+                delete(url);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
     }
 
 }

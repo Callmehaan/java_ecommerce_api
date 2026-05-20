@@ -35,9 +35,9 @@ public class ProductController extends BaseController {
             @RequestPart("data") CreateProductRequest createProductRequest,
             @RequestPart(value = "images", required = false)List<MultipartFile> images
             ) throws IOException {
-        Product product = productService.createProduct(createProductRequest, images);
+        ProductDto product = productService.createProduct(createProductRequest, images);
 
-        return ok(HttpStatus.CREATED.value(), "Product created successfully", ProductDto.from(product));
+        return ok(HttpStatus.CREATED.value(), "Product created successfully", product);
     }
 
     @GetMapping("{id}")
@@ -67,9 +67,9 @@ public class ProductController extends BaseController {
             @RequestPart("data") UpdateProductRequest updateProductRequest,
             @RequestPart("images")  List<MultipartFile> images
     ) throws IOException {
-        Product updatedProduct = productService.updateProduct(id, updateProductRequest, images);
+        ProductDto updatedProduct = productService.updateProduct(id, updateProductRequest, images);
         ApiResponse<ProductDto> apiResponse = ApiResponse.success(
-                HttpStatus.OK.value(), "Product updated successfully", ProductDto.from(updatedProduct));
+                HttpStatus.OK.value(), "Product updated successfully", updatedProduct);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
